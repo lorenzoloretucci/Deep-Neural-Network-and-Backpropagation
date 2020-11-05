@@ -93,17 +93,13 @@ class TwoLayerNet(object):
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        step1 = np.dot(X, W1) + b1
+        z_2 = np.dot(X, W1) + b1                #(5 , 10)
+        z_2[z_2 < 0] = 0                    #Relu
+        a_2 = z_2                           #Relu
+        z_3 = np.dot(a_2, W2) + b2          #(5 , 3)
 
-        for inx, el in enumerate(step1, 0):
-            for ind2 , el2 in enumerate(el, 0):
-                if el2 < 0:
-                  step1[inx][ind2] = 0
-
-        step2 = np.dot(step1, W2) + b2
-
-        scores += step2 
-        pass
+        scores = np.apply_along_axis(lambda x: np.exp(x) / np.sum(np.exp(x)),1, z_3) 
+        
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -126,9 +122,15 @@ class TwoLayerNet(object):
         # Implement the loss for the softmax output layer
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+
+        J = -np.log(
+                          np.apply_along_axis(lambda x: np.exp(x) / np.sum(np.exp(x)),1, z_3)
+                          )
+        cross_entropy = np.mean(J[np.arange(len(y)), y])
         
-        
-        
+        l2 = np.sum(np.power((W1),2)) + np.sum(np.power((W2),2))
+        l2 = reg * l2
+        loss = cross_entropy + l2 
         pass
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -143,7 +145,7 @@ class TwoLayerNet(object):
         ##############################################################################
 
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        
+
         
 
         pass
