@@ -1,2 +1,2 @@
-# Adm-HW2
+# AML-HW2
 Hi, This is the repo for hw2
