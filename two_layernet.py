@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Nov 15 19:35:41 2020
-
-@author: tommy
-"""
 from __future__ import print_function
 
 from builtins import range
@@ -25,8 +18,11 @@ class TwoLayerNet(object):
     We train the network with a softmax loss function and L2 regularization on the
     weight matrices. The network uses a ReLU nonlinearity after the first fully
     connected layer.
+
     In other words, the network has the following architecture:
+
     input - fully connected layer - ReLU - fully connected layer - softmax
+
     The outputs of the second fully-connected layer are the scores for each class.
     """
 
@@ -37,10 +33,12 @@ class TwoLayerNet(object):
         Initialize the model. Weights are initialized to small random values and
         biases are initialized to zero. Weights and biases are stored in the
         variable self.params, which is a dictionary with the following keys:
+
         W1: First layer weights; has shape (D, H)
         b1: First layer biases; has shape (H,)
         W2: Second layer weights; has shape (H, C)
         b2: Second layer biases; has shape (C,)
+
         Inputs:
         - input_size: The dimension D of the input data.
         - hidden_size: The number of neurons H in the hidden layer.
@@ -59,6 +57,7 @@ class TwoLayerNet(object):
         """
         Compute the loss and gradients for a two-layer fully connected neural
         network.
+
         Inputs:
         - X: Input data of shape (N, D). Each X[i] is a training sample.
         - y: Vector of training labels. y[i] is the label for X[i], and each y[i] is
@@ -66,9 +65,11 @@ class TwoLayerNet(object):
           is not passed then we only return scores, and if it is passed then we
           instead return the loss and gradients.
         - reg: Regularization strength.
+
         Returns:
         If y is None, return a matrix scores of shape (N, C) where scores[i, c] is
         the score for class c on input X[i].
+
         If y is not None, instead return a tuple of:
         - loss: Loss (data loss and regularization loss) for this batch of training
           samples.
@@ -97,7 +98,8 @@ class TwoLayerNet(object):
         a_2 = z_2                           #Relu
         z_3 = np.dot(a_2, W2) + b2          #(5 , 3)
 
-        scores = np.apply_along_axis(lambda x: np.exp(x) / np.sum(np.exp(x)),1, z_3) 
+        scores = np.apply_along_axis(lambda x: np.exp(x) / np.sum(np.exp(x)),1, z_3) #softmax
+        
         
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -144,21 +146,20 @@ class TwoLayerNet(object):
         ##############################################################################
 
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        dout = np.copy(scores)  # (N, C)
-        dout[np.arange(N), y] -= 1
-        dh = np.dot(dout, W2.T)
-        dz = np.dot(dout, W2.T) * (z_2 > 0)  # (N, H)
+        soft = scores  
+        soft[np.arange(N), y] -= 1                #apply delta
+        d_a2 = np.dot(soft, W2.T)                 #derivative relu
+        d_z2 = np.dot(soft, W2.T) * (z_2 > 0)     #derivative z2
         
         # compute gradient for parameters
-        grads['W2'] = np.dot(a_2.T, dout) / N      # (H, C)
-        grads['b2'] = np.sum(dout, axis=0) / N      # (C,)
-        grads['W1'] = np.dot(X.T, dz) / N        # (D, H)
-        grads['b1'] = np.sum(dz, axis=0) / N       # (H,)
+        grads['W2'] = np.dot(a_2.T, soft) / N      
+        grads['b2'] = np.sum(soft, axis=0) / N      
+        grads['W1'] = np.dot(X.T, d_z2) / N        
+        grads['b1'] = np.sum(d_z2, axis=0) / N       
         
         # add reg term
         grads['W2'] += reg * W2
         grads['W1'] += reg * W1
-
         pass
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -173,6 +174,7 @@ class TwoLayerNet(object):
               batch_size=200, verbose=False):
         """
         Train this neural network using stochastic gradient descent.
+
         Inputs:
         - X: A numpy array of shape (N, D) giving training data.
         - y: A numpy array of shape (N,) giving training labels; y[i] = c means that
@@ -207,10 +209,9 @@ class TwoLayerNet(object):
             #########################################################################
             
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-             
-            random_idxs = np.random.choice(num_train, batch_size)
-            X_batch = X[random_idxs]
-            y_batch = y[random_idxs]
+            idxs = np.random.choice(num_train, batch_size)
+            X_batch = X[idxs]
+            y_batch = y[idxs]           
             
             
             pass
@@ -232,7 +233,7 @@ class TwoLayerNet(object):
             self.params['W2'] -= learning_rate * grads['W2']
             self.params['b2'] -= learning_rate * grads['b2']
             self.params['W1'] -= learning_rate * grads['W1']
-            self.params['b1'] -= learning_rate * grads['b1'] 
+            self.params['b1'] -= learning_rate * grads['b1']            
             
             
             pass
@@ -266,9 +267,11 @@ class TwoLayerNet(object):
         Use the trained weights of this two-layer network to predict labels for
         data points. For each data point we predict scores for each of the C
         classes, and assign each data point to the class with the highest score.
+
         Inputs:
         - X: A numpy array of shape (N, D) giving N D-dimensional data points to
           classify.
+
         Returns:
         - y_pred: A numpy array of shape (N,) giving predicted labels for each of
           the elements of X. For all i, y_pred[i] = c means that X[i] is predicted
@@ -279,22 +282,21 @@ class TwoLayerNet(object):
         ###########################################################################
         # TODO: Implement this function; it should be VERY simple!                #
         ###########################################################################
+        
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        params = self.params
+
+  
 
         
-        z = np.dot(X, self.params['W1']) + self.params['b1']
-        h = np.maximum(z, 0)
-        out = np.dot(h, self.params['W2']) + self.params['b2']
-        y_pred = np.argmax(out, axis=1)
-        
-        
-
-
-
+        z_1 = np.dot(X, self.params['W1']) + self.params['b1']
+        a_2 = np.maximum(z_1, 0)
+        z_2 = np.dot(a_2, self.params['W2']) + self.params['b2']
+        y_pred = np.argmax(z_2, axis=1)
 
         pass
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         return y_pred
+
+
