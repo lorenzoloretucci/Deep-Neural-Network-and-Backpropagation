@@ -182,6 +182,7 @@ input_size = 32 * 32 * 3
 hidden_size = 50
 num_classes = 10
 net = TwoLayerNet(input_size, hidden_size, num_classes)
+
 # Train the network
 stats = net.train(X_train, y_train, X_val, y_val,
             num_iters=1000, batch_size=200,
@@ -275,8 +276,46 @@ best_net = None # store the best model into this
 
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
+configuration = {'hidden_size' : None, 'num_iters' : None, 'learning_rate' : None,
+                  'reg' : None}
 
+best_acc = 0
 
+# Hyperparamters
+list_hidden_size = [256, 128, 64]
+list_num_iters = [1000, 1200, 1500]
+list_learning_rate = [1e-2, 1e-3, 1e-4]
+list_reg = [0.25, 0.1, 0.01]
+
+# Grid-Search for the hyperparameters
+for hidden_size in list_hidden_size:
+    for num_iters in list_num_iters:
+        for learning_rate in list_learning_rate:
+            for reg in list_reg:
+                
+                net = TwoLayerNet(input_size, hidden_size, num_classes)
+                
+                # Train the network
+                stats = net.train(X_train, y_train, X_val, y_val,
+                                       num_iters=num_iters, batch_size=200,
+                                       learning_rate=learning_rate, learning_rate_decay=0.95,
+                                       reg=reg, verbose=True)
+
+                val_acc = (net.predict(X_val) == y_val).mean()
+                
+                # Storing the best accuracy that we got on the validation set
+                if val_acc > best_acc:
+                    best_acc = val_acc
+                    best_net = net
+                    print('Validation accuracy: ', val_acc)
+                    configuration['hidden_size'] = hidden_size
+                    configuration['num_iters'] = num_iters
+                    configuration['learning_rate'] = learning_rate
+                    configuration['reg'] = reg
+                    
+print('The best Validation accuracy is: ', best_acc)
+print(' ')
+print('The best configuration is: ', configuration)
 pass
 
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -294,3 +333,10 @@ show_net_weights(best_net)
 test_acc = (best_net.predict(X_test) == y_test).mean()
 print('Test accuracy: ', test_acc)
 
+
+
+####Best_net = TwoLayerNet(input_size, hidden_size = 256, num_classes)
+#stats = best_net.train(X_train, y_train, X_val, y_val,
+            #num_iters=1000, batch_size=200,
+            #learning_rate=1e-3, learning_rate_decay=0.95,
+            #reg=0.25, verbose=True)
