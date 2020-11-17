@@ -23,9 +23,13 @@ print('Using device: %s'%device)
 # Hyper-parameters
 #--------------------------------
 input_size = 32 * 32 * 3
-hidden_size = [50]
+hidden_size = [256,128,64] #Best Model 
+
+# Hidden size tested in our plot
+#[[256], [256,128], [256,128,64], [256,128,64,32], [256,128,64,32,16]]
+
 num_classes = 10
-num_epochs = 10
+num_epochs = 10 # We plot our model also with 20 epoch
 batch_size = 200
 learning_rate = 1e-3
 learning_rate_decay = 0.95
@@ -112,6 +116,21 @@ class MultiLayerPerceptron(nn.Module):
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
+        layers.append(nn.Linear(input_size, hidden_layers[0]))
+        
+        if len(hidden_layers) > 1:
+            
+            for i in range(1, len(hidden_layers)):
+                layers.append(nn.BatchNorm1d(hidden_layers[i-1])) #Thanks to it we improve the model 
+                layers.append(nn.ReLU()) #ReLU it was the best 
+              
+                layers.append(nn.Linear(hidden_layers[i-1], hidden_layers[i]))
+    
+        layers.append(nn.BatchNorm1d(hidden_layers[-1]))
+        layers.append(nn.ReLU())
+
+        layers.append(nn.Linear(hidden_layers[-1], num_classes))
+
         
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -121,6 +140,7 @@ class MultiLayerPerceptron(nn.Module):
         self.layers = nn.Sequential(*layers)
 
     def forward(self, x):
+        
         #################################################################################
         # TODO: Implement the forward pass computations                                 #
         # Note that you do not need to use the softmax operation at the end.            #
@@ -130,8 +150,9 @@ class MultiLayerPerceptron(nn.Module):
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
+        x = x.view(-1, 32 * 32 * 3)
 
-
+        out = self.layers(x)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         
         return out
@@ -169,13 +190,18 @@ if train:
             #################################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
             if (i+1) % 100 == 0:
                 print ('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
                        .format(epoch+1, num_epochs, i+1, total_step, loss.item()))
+        
 
         # Code to update the lr
         lr *= learning_rate_decay
@@ -192,8 +218,9 @@ if train:
                 # 2. Get the most confident predicted class        #
                 ####################################################
                 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-            
+                
+                outputs = model(images)
+                _, predicted = torch.max(outputs.data, 1)
 
                 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
                 total += labels.size(0)
@@ -243,7 +270,8 @@ else:
             # 2. Get the most confident predicted class        #
             ####################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+            outputs = model(images)
+            _, predicted = torch.max(outputs.data, 1)
             
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
