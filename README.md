@@ -14,4 +14,4 @@ Repository Structure:
 - On _Notebook_For_HW2.ipynb_ there are our experiment and process to understand how mathematically the network works. 
 - On _ex2_pytorch.py_ there is our solution for question 4.
 - Run _ex2_pytorch_final_plot.py_ to train the NN and show some plot. 
-- See also the _report.pdf_ for our final conclusion.  
+- See also _report.pdf_ for our final conclusion.  
