@@ -93,15 +93,13 @@ class TwoLayerNet(object):
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        z_2 = np.dot(X, W1) + b1                #(5 , 10)
+        z_2 = np.dot(X, W1) + b1            #(5 , 10)
         z_2[z_2 < 0] = 0                    #Relu
         a_2 = z_2                           #Relu
         z_3 = np.dot(a_2, W2) + b2          #(5 , 3)
 
-        scores = np.apply_along_axis(lambda x: np.exp(x) / np.sum(np.exp(x)),1, z_3) #softmax
-        
-        
-
+        scores = np.apply_along_axis(lambda x: np.exp(x) / np.sum(np.exp(x)), 1, z_3) #softmax
+    
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
 
@@ -125,10 +123,10 @@ class TwoLayerNet(object):
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         J = -np.log(
-                          np.apply_along_axis(lambda x: np.exp(x) / np.sum(np.exp(x)),1, z_3)
-                          )
+                    np.apply_along_axis(lambda x: np.exp(x) / np.sum(np.exp(x)), 1, z_3)
+                    )
         cross_entropy = np.mean(J[np.arange(len(y)), y])
-        
+
         l2 = np.sum(np.power((W1),2)) + np.sum(np.power((W2),2))
         l2 = reg * l2
         loss = cross_entropy + l2 
@@ -146,7 +144,7 @@ class TwoLayerNet(object):
         ##############################################################################
 
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        soft = scores  
+        soft = np.copy(scores)
         soft[np.arange(N), y] -= 1                #apply delta
         d_a2 = np.dot(soft, W2.T)                 #derivative relu
         d_z2 = np.dot(soft, W2.T) * (z_2 > 0)     #derivative z2
@@ -284,12 +282,10 @@ class TwoLayerNet(object):
         ###########################################################################
         
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-  
-
         
         z_1 = np.dot(X, self.params['W1']) + self.params['b1']
-        a_2 = np.maximum(z_1, 0)
+        z_1[z_1 < 0] = 0
+        a_2 = z_1
         z_2 = np.dot(a_2, self.params['W2']) + self.params['b2']
         y_pred = np.argmax(z_2, axis=1)
 
