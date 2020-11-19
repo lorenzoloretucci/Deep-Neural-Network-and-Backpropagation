@@ -341,6 +341,23 @@ for hidden_size in list_hidden_size:
 print('The best validation accuracy is: ', best_acc, '\n')
 print('The best configuration is: ', configuration, '\n')
 
+#Showing the loss and accuracy history of the best network
+plt.figure(figsize = (20, 15))
+plt.subplot(2, 1, 1)
+plt.plot(best_stats['loss_history'])
+plt.title('Loss history', size = 20)
+plt.xlabel('Iteration')
+plt.ylabel('Loss')
+
+plt.subplot(2, 1, 2)
+plt.plot(best_stats['train_acc_history'], label='train')
+plt.plot(best_stats['val_acc_history'], label='val')
+plt.title('Classification accuracy history', size = 20)
+plt.xlabel('Epoch')
+plt.ylabel('Classification accuracy')
+plt.legend()
+plt.show()
+
 #With PCA we have to change the original W1.reshape(32, 32, 3, -1)
 #Because now we have 99 features instead of the original 3072 
 def show_net_weights(net):
@@ -349,6 +366,7 @@ def show_net_weights(net):
     plt.imshow(visualize_grid(W1, padding=3).astype('uint8'))
     plt.gca().axis('off')
     plt.show()
+
 
 pass
 
