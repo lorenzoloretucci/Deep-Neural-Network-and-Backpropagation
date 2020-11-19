@@ -171,7 +171,6 @@ plt.imshow(visualize_grid(X_train[:100, :].reshape(100, 32,32, 3), padding=3).as
 plt.gca().axis('off')
 plt.show()
 
-
 # Train a network
 # To train our network we will use SGD. In addition, we will
 # adjust the learning rate with an exponential learning rate schedule as
@@ -259,7 +258,6 @@ show_net_weights(net)
 
 # **Explain your hyperparameter tuning process in the report.**
 
-
 best_net = None # store the best model into this
 
 #################################################################################
@@ -276,16 +274,42 @@ best_net = None # store the best model into this
 
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
+#Standardization
+mean_data = np.mean(X_train)
+std_data = np.std(X_train)
+
+X_train_standard = (X_train - mean_data) / std_data
+X_val_standard = (X_val - mean_data) / std_data
+X_test_standard = (X_test - mean_data) / std_data
+
+#PCA on the standardized data
+from sklearn.decomposition import PCA
+
+pca = PCA(0.9)
+pca.fit(X_train_standard)
+
+#Number of components
+input_size_pca = pca.n_components_
+print('The number of components that captures 90% of the variance: ', input_size_pca)
+
+#Transforming the dataset
+train_pca = pca.transform(X_train_standard)
+val_pca = pca.transform(X_val_standard)
+test_pca = pca.transform(X_test_standard)
+
+
 configuration = {'hidden_size' : None, 'num_iters' : None, 'learning_rate' : None,
                   'reg' : None}
 
 best_acc = 0
+best_stats = None
+
 
 # Hyperparamters
-list_hidden_size = [256, 128, 64]
-list_num_iters = [1000, 1200, 1500]
-list_learning_rate = [1e-2, 1e-3, 1e-4]
-list_reg = [0.25, 0.1, 0.01]
+list_hidden_size = [256, 192, 128, 64]
+list_num_iters = [2000, 3000, 4000, 5000] 
+list_learning_rate = [1e-1, 1e-2, 1e-3]
+list_reg = [1e-1, 1e-2, 1e-3]
 
 # Grid-Search for the hyperparameters
 for hidden_size in list_hidden_size:
@@ -293,18 +317,19 @@ for hidden_size in list_hidden_size:
         for learning_rate in list_learning_rate:
             for reg in list_reg:
                 
-                net = TwoLayerNet(input_size, hidden_size, num_classes)
+                net = TwoLayerNet(input_size_pca, hidden_size, num_classes)
                 
                 # Train the network
-                stats = net.train(X_train, y_train, X_val, y_val,
-                                       num_iters=num_iters, batch_size=200,
-                                       learning_rate=learning_rate, learning_rate_decay=0.95,
-                                       reg=reg, verbose=True)
+                stats = net.train(train_pca, y_train, val_pca, y_val,
+                                  num_iters=num_iters, batch_size=200,
+                                  learning_rate=learning_rate, learning_rate_decay=0.95,
+                                  reg=reg, verbose=True)
 
-                val_acc = (net.predict(X_val) == y_val).mean()
+                val_acc = (net.predict(val_pca) == y_val).mean()
                 
                 # Storing the best accuracy that we got on the validation set
                 if val_acc > best_acc:
+                    best_stats = stats
                     best_acc = val_acc
                     best_net = net
                     print('Validation accuracy: ', val_acc)
@@ -312,31 +337,29 @@ for hidden_size in list_hidden_size:
                     configuration['num_iters'] = num_iters
                     configuration['learning_rate'] = learning_rate
                     configuration['reg'] = reg
-                    
-print('The best Validation accuracy is: ', best_acc)
-print(' ')
-print('The best configuration is: ', configuration)
+               
+print('The best validation accuracy is: ', best_acc, '\n')
+print('The best configuration is: ', configuration, '\n')
+
+#With PCA we have to change the original W1.reshape(32, 32, 3, -1)
+#Because now we have 99 features instead of the original 3072 
+def show_net_weights(net):
+    W1 = net.params['W1']
+    W1 = W1.reshape(11, 3, 3, -1).transpose(3, 0, 1, 2)
+    plt.imshow(visualize_grid(W1, padding=3).astype('uint8'))
+    plt.gca().axis('off')
+    plt.show()
+
 pass
 
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-
 # visualize the weights of the best network
 plt.figure(6)
-show_net_weights(best_net)
-
+show_net_weights(best_net) 
 
 # Run on the test set
 # When you are done experimenting, you should evaluate your final trained
 # network on the test set; you should get above 48%.
-
-test_acc = (best_net.predict(X_test) == y_test).mean()
+test_acc = (best_net.predict(test_pca) == y_test).mean()
 print('Test accuracy: ', test_acc)
-
-
-
-####Best_net = TwoLayerNet(input_size, hidden_size = 256, num_classes)
-#stats = best_net.train(X_train, y_train, X_val, y_val,
-            #num_iters=1000, batch_size=200,
-            #learning_rate=1e-3, learning_rate_decay=0.95,
-            #reg=0.25, verbose=True)
